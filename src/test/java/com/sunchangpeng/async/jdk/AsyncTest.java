@@ -4,12 +4,13 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.sunchangpeng.async.Utils.*;
 import static org.junit.Assert.*;
 
 public class AsyncTest {
@@ -138,12 +139,12 @@ public class AsyncTest {
     @Test
     public void test10() {
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(200);
+            sleepEnough(200,TimeUnit.MILLISECONDS);
             return "Sunchp";
         }).thenApplyAsync(i -> i.toUpperCase());
 
         CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(100);
+            sleepEnough(100,TimeUnit.MILLISECONDS);
             return "Sunchp";
         }).thenApplyAsync(i -> i.toLowerCase());
 
@@ -157,12 +158,12 @@ public class AsyncTest {
         StringBuilder stringBuilder = new StringBuilder();
 
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(200);
+            sleepEnough(200,TimeUnit.MILLISECONDS);
             return "Sunchp";
         }).thenApply(String::toUpperCase);
 
         CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(100);
+            sleepEnough(100,TimeUnit.MILLISECONDS);
             return "Sunchp";
         }).thenApply(String::toLowerCase);
 
@@ -175,12 +176,12 @@ public class AsyncTest {
     @Test
     public void test12() {
         CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(200);
+            sleepEnough(200,TimeUnit.MILLISECONDS);
             return "Hello";
         }).thenApply(String::toUpperCase);
 
         CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
-            sleepEnough(100);
+            sleepEnough(100,TimeUnit.MILLISECONDS);
             return "World";
         }).thenApply(String::toLowerCase);
 
@@ -195,13 +196,13 @@ public class AsyncTest {
     public void test13() {
         CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(200);
+                    sleepEnough(200,TimeUnit.MILLISECONDS);
                     return "Hello";
                 }).thenApply(String::toUpperCase);
 
         CompletableFuture<String> future2 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(100);
+                    sleepEnough(100,TimeUnit.MILLISECONDS);
                     return "World";
                 })
                 .thenApply(String::toLowerCase);
@@ -218,13 +219,13 @@ public class AsyncTest {
     public void test14() {
         CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(200);
+                    sleepEnough(200,TimeUnit.MILLISECONDS);
                     return "Hello";
                 }).thenApply(String::toUpperCase);
 
         CompletableFuture<String> future2 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(100);
+                    sleepEnough(100,TimeUnit.MILLISECONDS);
                     return "World";
                 })
                 .thenApply(String::toLowerCase);
@@ -237,13 +238,13 @@ public class AsyncTest {
     public void test15() {
         CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(200);
+                    sleepEnough(200,TimeUnit.MILLISECONDS);
                     return "Hello";
                 }).thenApplyAsync(String::toUpperCase);
 
         CompletableFuture<String> future2 = CompletableFuture
                 .supplyAsync(() -> {
-                    sleepEnough(100);
+                    sleepEnough(100,TimeUnit.MILLISECONDS);
                     return "World";
                 })
                 .thenApplyAsync(String::toLowerCase);
@@ -313,38 +314,5 @@ public class AsyncTest {
         assertTrue(result.length() > 0);
     }
 
-    private static boolean isUpperCase(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (Character.isLowerCase(s.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
 
-    private static void sleepEnough(long time) {
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            // ...
-        }
-    }
-
-    private static void randomSleep() {
-        try {
-            Thread.sleep(random.nextInt(100));
-        } catch (InterruptedException e) {
-            // ...
-        }
-    }
-
-    static Random random = new Random();
-
-    private static void sleepEnough() {
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            // ...
-        }
-    }
 }
