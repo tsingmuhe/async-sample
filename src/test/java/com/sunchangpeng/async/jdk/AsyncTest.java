@@ -2,15 +2,18 @@ package com.sunchangpeng.async.jdk;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
 public class AsyncTest {
-
+    //single CompletableFuture
     @Test
     public void test1() {
         CompletableFuture future = CompletableFuture.completedFuture("sunchp");
@@ -131,116 +134,192 @@ public class AsyncTest {
         assertEquals("canceled message", exceptionFuture.join());
     }
 
+    //two CompletableFuture
     @Test
     public void test10() {
-        CompletableFuture<String> future = CompletableFuture
-                .supplyAsync(() -> {
-                    sleepEnough(200);
-                    return "Sunchp";
-                })
-                .thenApplyAsync(i -> i.toUpperCase())
-                .applyToEither(
-                        CompletableFuture
-                                .supplyAsync(() -> {
-                                    sleepEnough(100);
-                                    return "Sunchp";
-                                })
-                                .thenApplyAsync(i -> i.toLowerCase()),
-                        i -> i);
+        CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(200);
+            return "Sunchp";
+        }).thenApplyAsync(i -> i.toUpperCase());
 
-        assertEquals("sunchp", future.join());
+        CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(100);
+            return "Sunchp";
+        }).thenApplyAsync(i -> i.toLowerCase());
+
+        CompletableFuture<String> future3 = future1.applyToEither(future2, i -> i);
+
+        assertEquals("sunchp", future3.join());
     }
 
     @Test
     public void test11() {
         StringBuilder stringBuilder = new StringBuilder();
-        CompletableFuture future = CompletableFuture
-                .supplyAsync(() -> {
-                    sleepEnough(200);
-                    return "Sunchp";
-                })
-                .thenApply(String::toUpperCase)
-                .acceptEither(CompletableFuture.supplyAsync(() -> {
-                    sleepEnough(100);
-                    return "Sunchp";
-                }).thenApply(String::toLowerCase), i -> stringBuilder.append(i));
 
-        future.join();
+        CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(200);
+            return "Sunchp";
+        }).thenApply(String::toUpperCase);
 
+        CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(100);
+            return "Sunchp";
+        }).thenApply(String::toLowerCase);
+
+        CompletableFuture future3 = future1.acceptEither(future2, i -> stringBuilder.append(i));
+
+        assertNull(future3.join());
         assertTrue(stringBuilder.length() > 0);
     }
 
     @Test
     public void test12() {
-        StringBuilder stringBuilder = new StringBuilder();
-        CompletableFuture future = CompletableFuture
-                .supplyAsync(() -> {
-                    sleepEnough(200);
-                    return "Hello";
-                }).thenApply(String::toUpperCase)
-                .runAfterBoth(CompletableFuture
-                        .supplyAsync(() -> {
-                            sleepEnough(100);
-                            return "World";
-                        })
-                        .thenApply(String::toLowerCase), () -> stringBuilder.append("Done"));
-        future.join();
+        CompletableFuture<String> future1 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(200);
+            return "Hello";
+        }).thenApply(String::toUpperCase);
 
+        CompletableFuture<String> future2 = CompletableFuture.supplyAsync(() -> {
+            sleepEnough(100);
+            return "World";
+        }).thenApply(String::toLowerCase);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        CompletableFuture future3 = future1.runAfterBoth(future2, () -> stringBuilder.append("Done"));
+
+        assertNull(future3.join());
         assertTrue(stringBuilder.length() > 0);
     }
 
     @Test
     public void test13() {
-        StringBuilder stringBuilder = new StringBuilder();
-        CompletableFuture future = CompletableFuture
+        CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
                     sleepEnough(200);
                     return "Hello";
-                }).thenApply(String::toUpperCase)
-                .thenAcceptBoth(CompletableFuture
-                        .supplyAsync(() -> {
-                            sleepEnough(100);
-                            return "World";
-                        })
-                        .thenApply(String::toLowerCase), (i, j) -> stringBuilder.append(i).append(" ").append(j));
-        future.join();
+                }).thenApply(String::toUpperCase);
 
+        CompletableFuture<String> future2 = CompletableFuture
+                .supplyAsync(() -> {
+                    sleepEnough(100);
+                    return "World";
+                })
+                .thenApply(String::toLowerCase);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        CompletableFuture future3 = future1.thenAcceptBoth(future2, (i, j) -> stringBuilder.append(i).append(" ").append(j));
+
+        assertNull(future3.join());
         assertEquals("HELLO world", stringBuilder.toString());
     }
 
 
     @Test
     public void test14() {
-        CompletableFuture future = CompletableFuture
+        CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
                     sleepEnough(200);
                     return "Hello";
-                }).thenApply(String::toUpperCase)
-                .thenCombine(CompletableFuture
-                        .supplyAsync(() -> {
-                            sleepEnough(100);
-                            return "World";
-                        })
-                        .thenApply(String::toLowerCase), (i, j) -> i + " " + j);
+                }).thenApply(String::toUpperCase);
 
-        assertEquals("HELLO world", future.join());
+        CompletableFuture<String> future2 = CompletableFuture
+                .supplyAsync(() -> {
+                    sleepEnough(100);
+                    return "World";
+                })
+                .thenApply(String::toLowerCase);
+
+        CompletableFuture future3 = future1.thenCombine(future2, (i, j) -> i + " " + j);
+        assertEquals("HELLO world", future3.join());
     }
 
     @Test
     public void test15() {
-        CompletableFuture future = CompletableFuture
+        CompletableFuture<String> future1 = CompletableFuture
                 .supplyAsync(() -> {
                     sleepEnough(200);
                     return "Hello";
-                }).thenApplyAsync(String::toUpperCase)
-                .thenCombine(CompletableFuture
-                        .supplyAsync(() -> {
-                            sleepEnough(100);
-                            return "World";
-                        })
-                        .thenApplyAsync(String::toLowerCase), (i, j) -> i + " " + j);
+                }).thenApplyAsync(String::toUpperCase);
 
-        assertEquals("HELLO world", future.join());
+        CompletableFuture<String> future2 = CompletableFuture
+                .supplyAsync(() -> {
+                    sleepEnough(100);
+                    return "World";
+                })
+                .thenApplyAsync(String::toLowerCase);
+
+        CompletableFuture future3 = future1.thenCombine(future2, (i, j) -> i + " " + j);
+
+        assertEquals("HELLO world", future3.join());
+    }
+
+    //many CompletableFuture
+    @Test
+    public void test16() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.supplyAsync(() -> {
+                    randomSleep();
+                    return msg;
+                }).thenApply(String::toUpperCase)).collect(Collectors.toList());
+
+        CompletableFuture future = CompletableFuture.anyOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((i, e) -> {
+            if (e == null) {
+                assertTrue(isUpperCase((String) i));
+                result.append(i);
+            }
+        });
+
+        future.join();
+        assertTrue(result.length() > 0);
+    }
+
+    @Test
+    public void test17() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.supplyAsync(() -> {
+                    randomSleep();
+                    return msg;
+                }).thenApply(String::toUpperCase)).collect(Collectors.toList());
+
+        CompletableFuture future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((i, e) -> {
+            futures.forEach(cf -> assertTrue(isUpperCase(cf.getNow(null))));
+            result.append("done");
+        });
+
+        future.join();
+        assertTrue(result.length() > 0);
+    }
+
+    @Test
+    public void test18() {
+        StringBuilder result = new StringBuilder();
+        List<String> messages = Arrays.asList("a", "b", "c");
+        List<CompletableFuture<String>> futures = messages.stream()
+                .map(msg -> CompletableFuture.supplyAsync(() -> {
+                    randomSleep();
+                    return msg;
+                }).thenApplyAsync(String::toUpperCase)).collect(Collectors.toList());
+
+        CompletableFuture future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((i, e) -> {
+            futures.forEach(cf -> assertTrue(isUpperCase(cf.getNow(null))));
+            result.append("done");
+        });
+
+        future.join();
+        assertTrue(result.length() > 0);
+    }
+
+    private static boolean isUpperCase(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isLowerCase(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void sleepEnough(long time) {
